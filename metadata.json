@@ -1,0 +1,7 @@
+{
+  "name": "iberry MS",
+  "description": "A comprehensive point-of-sale and management application for cellphone repair businesses, featuring repair tracking, inventory management, customer CRM, and receipt generation.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
