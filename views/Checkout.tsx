@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Trash2, Printer, CheckCircle2, User, CreditCard, Banknote, Wrench, Package, Minus, Plus } from 'lucide-react';
+import { ShoppingCart, Trash2, Printer, CheckCircle, User, CreditCard, Banknote, Wrench, Package, Minus, Plus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -130,7 +130,7 @@ const Checkout: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center py-20 animate-in zoom-in duration-500">
         <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center text-white mb-6 shadow-xl shadow-green-500/20">
-          <CheckCircle2 className="w-16 h-16" />
+          <CheckCircle className="w-16 h-16" />
         </div>
         <h2 className="text-3xl font-bold mb-2 text-zinc-900 dark:text-zinc-100">Sale Confirmed!</h2>
         <p className="text-zinc-500 mb-8 text-center max-w-sm">The iBerry branded invoice has been generated. Stock levels updated.</p>

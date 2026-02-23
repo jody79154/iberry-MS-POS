@@ -3,7 +3,7 @@ import {
   TrendingUp, 
   Wrench, 
   AlertTriangle, 
-  CheckCircle2, 
+  CheckCircle, 
   Plus, 
   ShoppingCart, 
   PackagePlus, 
@@ -41,7 +41,7 @@ const Dashboard: React.FC = () => {
     { label: "Today's Revenue", value: `R${todayRevenue.toFixed(2)}`, icon: TrendingUp, color: 'text-red-500', bg: 'bg-red-500/10' },
     { label: "Active Repairs", value: activeRepairsCount, icon: Wrench, color: 'text-red-500', bg: 'bg-red-500/10' },
     { label: "Low Stock Items", value: lowStockCount, icon: AlertTriangle, color: 'text-orange-500', bg: 'bg-orange-500/10' },
-    { label: "Completed Today", value: completedToday, icon: CheckCircle2, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { label: "Completed Today", value: completedToday, icon: CheckCircle, color: 'text-purple-500', bg: 'bg-purple-500/10' },
   ];
 
   const quickActions = [
@@ -134,11 +134,11 @@ const Dashboard: React.FC = () => {
                       <Wrench className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold truncate max-w-[100px]">{repair.device}</p>
+                      <p className="text-xs font-bold truncate max-w-[100px]">{repair.model}</p>
                       <p className="text-[9px] text-zinc-400 font-bold uppercase">{repair.status}</p>
                     </div>
                   </div>
-                  <span className="text-[10px] font-black text-red-600">R{repair.total.toFixed(0)}</span>
+                  <span className="text-[10px] font-black text-red-600">R{repair.price.toFixed(0)}</span>
                 </div>
               ))}
             </div>

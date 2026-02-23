@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { Customer } from '../types';
 import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import ConfirmModal from '../components/ConfirmModal';
 
 const Customers: React.FC = () => {
   const { customers, saveCustomer, deleteCustomer, repairs, saveRepair } = useApp();
@@ -11,12 +12,8 @@ const Customers: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (location.state && (location.state as any).openModal) {
-      handleOpenModal();
-    }
-  }, [location.state]);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string }>({ isOpen: false, id: '' });
   const [formData, setFormData] = useState({ name: '', phone: '', email: '', address: '' });
 
   const handleOpenModal = (customer?: Customer) => {
@@ -34,6 +31,12 @@ const Customers: React.FC = () => {
     }
     setIsModalOpen(true);
   };
+
+  useEffect(() => {
+    if (location.state && (location.state as any).openModal) {
+      handleOpenModal();
+    }
+  }, [location.state]);
 
   const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,9 +61,19 @@ const Customers: React.FC = () => {
     setFormData({ name: '', phone: '', email: '', address: '' });
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this customer? Historical repairs will remain.')) {
+  const handleDelete = (id: string) => {
+    setDeleteConfirm({ isOpen: true, id });
+  };
+
+  const confirmDelete = async () => {
+    const id = deleteConfirm.id;
+    console.log("UI: confirmDelete (Customer) called for ID:", id);
+    try {
       await deleteCustomer(id);
+      console.log("UI: deleteCustomer call completed");
+    } catch (err) {
+      console.error("UI: Error calling deleteCustomer:", err);
+      alert("UI Error: " + (err as any).message);
     }
   };
 
@@ -216,6 +229,14 @@ const Customers: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, id: '' })}
+        onConfirm={confirmDelete}
+        title="Delete Customer"
+        message="Are you sure you want to delete this customer? Historical repairs will remain, but the customer profile will be removed."
+      />
     </div>
   );
 };

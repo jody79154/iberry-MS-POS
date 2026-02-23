@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Plus, Clock, PackageCheck, Truck, ClipboardList, Trash2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { StockOrder } from '../types';
+import ConfirmModal from '../components/ConfirmModal';
 
 const StockOrders: React.FC = () => {
   const { stockOrders, saveStockOrder, deleteStockOrder } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string }>({ isOpen: false, id: '' });
   const [formData, setFormData] = useState({ itemDescription: '', requestedBy: '' });
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -26,9 +28,19 @@ const StockOrders: React.FC = () => {
     await saveStockOrder({ ...order, status });
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Delete this stock request?')) {
+  const handleDelete = (id: string) => {
+    setDeleteConfirm({ isOpen: true, id });
+  };
+
+  const confirmDelete = async () => {
+    const id = deleteConfirm.id;
+    console.log("UI: confirmDelete (StockOrder) called for ID:", id);
+    try {
       await deleteStockOrder(id);
+      console.log("UI: deleteStockOrder call completed");
+    } catch (err) {
+      console.error("UI: Error calling deleteStockOrder:", err);
+      alert("UI Error: " + (err as any).message);
     }
   };
 
@@ -138,6 +150,14 @@ const StockOrders: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, id: '' })}
+        onConfirm={confirmDelete}
+        title="Delete Stock Request"
+        message="Are you sure you want to delete this stock request? This action cannot be undone."
+      />
     </div>
   );
 };

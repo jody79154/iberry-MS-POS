@@ -40,6 +40,7 @@ interface AppContextType {
   seedDatabase: () => Promise<void>;
   getSmartDiagnosis: (model: string, fault: string) => Promise<string>;
   logout: () => Promise<void>;
+  fetchData: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -48,6 +49,7 @@ const supabaseUrl = 'https://djntlqdkipwoowogzofv.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqbnRscWRraXB3b293b2d6b2Z2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMzU5NjEsImV4cCI6MjA4NjkxMTk2MX0.YFSojKvQGrW2-vWoDjvPZlIEXGizxhEuZyS5WTVdxtY';
 
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+console.log("Supabase client:", supabase);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -89,9 +91,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (p.status === 'fulfilled' && p.value) setProducts(p.value);
       if (c.status === 'fulfilled' && c.value) setCustomers(c.value);
-      if (r.status === 'fulfilled' && r.value.data) setRepairs(r.value.data);
+      if (r.status === 'fulfilled' && r.value.data) {
+        console.log("Fetched repairs sample:", r.value.data.slice(0, 2));
+        setRepairs(r.value.data);
+      }
       if (s.status === 'fulfilled' && s.value.data) setSales(s.value.data);
-      if (so.status === 'fulfilled' && so.value.data) setStockOrders(so.value.data);
+      if (so.status === 'fulfilled' && so.value.data) {
+        console.log("Fetched stock orders sample:", so.value.data.slice(0, 2));
+        setStockOrders(so.value.data);
+      }
       if (conf.status === 'fulfilled' && conf.value?.data?.data) setStoreInfo(conf.value.data.data);
       
       setIsCloudConnected(true);
@@ -183,15 +191,174 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const saveProduct = async (product: Product) => { await supabase.from('products').upsert(product); };
-  const deleteProduct = async (id: string) => { await supabase.from('products').delete().eq('id', id); };
-  const saveCustomer = async (customer: Customer) => { await supabase.from('customers').upsert(customer); };
-  const deleteCustomer = async (id: string) => { await supabase.from('customers').delete().eq('id', id); };
-  const saveRepair = async (repair: Repair) => { await supabase.from('repairs').upsert(repair); };
-  const deleteRepair = async (id: string) => { await supabase.from('repairs').delete().eq('id', id); };
-  const addSale = async (sale: Sale) => { await supabase.from('sales').insert(sale); };
-  const saveStockOrder = async (order: StockOrder) => { await supabase.from('stock_orders').upsert(order); };
-  const deleteStockOrder = async (id: string) => { await supabase.from('stock_orders').delete().eq('id', id); };
+  const saveProduct = async (product: Product) => { 
+    try {
+      const { error } = await supabase.from('products').upsert(product);
+      if (error) throw error;
+      setProducts(prev => {
+        const exists = prev.find(p => p.id === product.id);
+        if (exists) return prev.map(p => p.id === product.id ? product : p);
+        return [...prev, product];
+      });
+    } catch (err) {
+      console.error("Save product error:", err);
+      alert("Failed to save product: " + (err as any).message);
+    }
+  };
+
+  const deleteProduct = async (id: string) => { 
+    console.log(`[AppContext] deleteProduct called with ID: ${id}`);
+    try {
+      console.log(`[AppContext] Executing Supabase delete on 'products' for ID: ${id}`);
+      const { error, status, count } = await supabase.from('products').delete({ count: 'exact' }).eq('id', String(id));
+      console.log(`[AppContext] Supabase response - Status: ${status}, Count: ${count}, Error:`, error);
+      
+      if (error) {
+        console.error("[AppContext] Delete product error:", error);
+        alert(`Cloud Delete Failed: ${error.message} (Status: ${status})`);
+        return;
+      }
+      
+      if (count === 0) {
+        console.warn("[AppContext] Delete failed: No record found or RLS blocking.");
+        alert("Delete Failed: No record was found with that ID, or database permissions (RLS) are blocking the deletion.");
+        return;
+      }
+      
+      console.log(`[AppContext] Delete successful. Updating local state...`);
+      setProducts(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      console.error("[AppContext] Delete product exception:", err);
+      alert(`Unexpected Error: ${(err as any).message}`);
+    }
+  };
+  const saveCustomer = async (customer: Customer) => { 
+    try {
+      const { error } = await supabase.from('customers').upsert(customer);
+      if (error) throw error;
+      setCustomers(prev => {
+        const exists = prev.find(c => c.id === customer.id);
+        if (exists) return prev.map(c => c.id === customer.id ? customer : c);
+        return [...prev, customer];
+      });
+    } catch (err) {
+      console.error("Save customer error:", err);
+      alert("Failed to save customer: " + (err as any).message);
+    }
+  };
+  const deleteCustomer = async (id: string) => { 
+    console.log(`[AppContext] deleteCustomer called with ID: ${id}`);
+    try {
+      console.log(`[AppContext] Executing Supabase delete on 'customers' for ID: ${id}`);
+      const { error, status, count } = await supabase.from('customers').delete({ count: 'exact' }).eq('id', String(id));
+      console.log(`[AppContext] Supabase response - Status: ${status}, Count: ${count}, Error:`, error);
+      
+      if (error) {
+        console.error("[AppContext] Delete customer error:", error);
+        alert(`Cloud Delete Failed: ${error.message} (Status: ${status})`);
+        return;
+      }
+      
+      if (count === 0) {
+        console.warn("[AppContext] Delete failed: No record found or RLS blocking.");
+        alert("Delete Failed: No record found or RLS policy blocking deletion.");
+        return;
+      }
+      
+      setCustomers(prev => prev.filter(c => c.id !== id));
+    } catch (err) {
+      console.error("[AppContext] Delete customer exception:", err);
+      alert(`Unexpected Error: ${(err as any).message}`);
+    }
+  };
+  const saveRepair = async (repair: Repair) => { 
+    try {
+      const { error } = await supabase.from('repairs').upsert(repair);
+      if (error) throw error;
+      setRepairs(prev => {
+        const exists = prev.find(r => r.id === repair.id);
+        if (exists) return prev.map(r => r.id === repair.id ? repair : r);
+        return [repair, ...prev];
+      });
+    } catch (err) {
+      console.error("Save repair error:", err);
+      alert("Failed to save repair: " + (err as any).message);
+    }
+  };
+  const deleteRepair = async (id: string) => { 
+    console.log(`[AppContext] deleteRepair called with ID: ${id}`);
+    try {
+      console.log(`[AppContext] Executing Supabase delete on 'repairs' for ID: ${id}`);
+      const { error, status, count } = await supabase.from('repairs').delete({ count: 'exact' }).eq('id', String(id));
+      console.log(`[AppContext] Supabase response - Status: ${status}, Count: ${count}, Error:`, error);
+      
+      if (error) {
+        console.error("[AppContext] Delete repair error:", error);
+        alert(`Cloud Delete Failed: ${error.message} (Status: ${status})`);
+        return;
+      }
+      
+      if (count === 0) {
+        console.warn("[AppContext] Delete failed: No record found or RLS blocking.");
+        alert("Delete Failed: No record found or RLS policy blocking deletion.");
+        return;
+      }
+      
+      setRepairs(prev => prev.filter(r => r.id !== id));
+    } catch (err) {
+      console.error("[AppContext] Delete repair exception:", err);
+      alert(`Unexpected Error: ${(err as any).message}`);
+    }
+  };
+  const addSale = async (sale: Sale) => { 
+    try {
+      const { error } = await supabase.from('sales').insert(sale);
+      if (error) throw error;
+      setSales(prev => [sale, ...prev]);
+    } catch (err) {
+      console.error("Add sale error:", err);
+      alert("Failed to record sale: " + (err as any).message);
+    }
+  };
+  const saveStockOrder = async (order: StockOrder) => { 
+    try {
+      const { error } = await supabase.from('stock_orders').upsert(order);
+      if (error) throw error;
+      setStockOrders(prev => {
+        const exists = prev.find(o => o.id === order.id);
+        if (exists) return prev.map(o => o.id === order.id ? order : o);
+        return [order, ...prev];
+      });
+    } catch (err) {
+      console.error("Save stock order error:", err);
+      alert("Failed to save stock order: " + (err as any).message);
+    }
+  };
+  const deleteStockOrder = async (id: string) => { 
+    console.log(`[AppContext] deleteStockOrder called with ID: ${id}`);
+    try {
+      console.log(`[AppContext] Executing Supabase delete on 'stock_orders' for ID: ${id}`);
+      const { error, status, count } = await supabase.from('stock_orders').delete({ count: 'exact' }).eq('id', String(id));
+      console.log(`[AppContext] Supabase response - Status: ${status}, Count: ${count}, Error:`, error);
+      
+      if (error) {
+        console.error("[AppContext] Delete stock order error:", error);
+        alert(`Cloud Delete Failed: ${error.message} (Status: ${status})`);
+        return;
+      }
+      
+      if (count === 0) {
+        console.warn("[AppContext] Delete failed: No record found or RLS blocking.");
+        alert("Delete Failed: No record found or RLS policy blocking deletion.");
+        return;
+      }
+      
+      setStockOrders(prev => prev.filter(o => o.id !== id));
+    } catch (err) {
+      console.error("[AppContext] Delete stock order exception:", err);
+      alert(`Unexpected Error: ${(err as any).message}`);
+    }
+  };
   const updateStoreInfo = async (info: StoreInfo) => { 
     await supabase.from('config').upsert({ id: 'store', data: info });
     setStoreInfo(info);
@@ -212,7 +379,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       theme, toggleTheme, isCloudConnected, supabaseConfigured,
       saveProduct, deleteProduct, saveCustomer, deleteCustomer,
       saveRepair, deleteRepair, addSale, saveStockOrder, deleteStockOrder,
-      updateStoreInfo, seedDatabase, getSmartDiagnosis, logout
+      updateStoreInfo, seedDatabase, getSmartDiagnosis, logout, fetchData
     }}>
       {children}
     </AppContext.Provider>

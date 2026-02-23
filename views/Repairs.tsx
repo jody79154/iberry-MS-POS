@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, Wrench, Calendar, User as UserIcon, ShoppingCart, Edit, Trash2, Sparkles, Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Repair, RepairStatus } from '../types';
 import { useLocation } from 'react-router-dom';
+import ConfirmModal from '../components/ConfirmModal';
 
 const Repairs: React.FC = () => {
   const { repairs, saveRepair, deleteRepair, customers, addToCart, getSmartDiagnosis } = useApp();
@@ -11,15 +12,8 @@ const Repairs: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingRepair, setEditingRepair] = useState<Repair | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string }>({ isOpen: false, id: '' });
 
-  useEffect(() => {
-    if (location.state && (location.state as any).openModal) {
-      setIsModalOpen(true);
-      setEditingRepair(null);
-      setAiSuggestion(null);
-      setFormData({ customerId: '', model: '', imei: '', fault: '', price: '', notes: '' });
-    }
-  }, [location.state]);
   const [isDiagnosing, setIsDiagnosing] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
 
@@ -31,6 +25,15 @@ const Repairs: React.FC = () => {
     price: '',
     notes: ''
   });
+
+  useEffect(() => {
+    if (location.state && (location.state as any).openModal) {
+      setIsModalOpen(true);
+      setEditingRepair(null);
+      setAiSuggestion(null);
+      setFormData({ customerId: '', model: '', imei: '', fault: '', price: '', notes: '' });
+    }
+  }, [location.state]);
 
   const handleAddRepair = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,9 +76,19 @@ const Repairs: React.FC = () => {
     await saveRepair({ ...repair, status });
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Permanently delete this repair order?')) {
+  const handleDelete = (id: string) => {
+    setDeleteConfirm({ isOpen: true, id });
+  };
+
+  const confirmDelete = async () => {
+    const id = deleteConfirm.id;
+    console.log("UI: confirmDelete called for ID:", id);
+    try {
       await deleteRepair(id);
+      console.log("UI: deleteRepair call completed successfully");
+    } catch (err) {
+      console.error("UI: Error calling deleteRepair:", err);
+      alert("UI Error: " + (err as any).message);
     }
   };
 
@@ -277,6 +290,14 @@ const Repairs: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, id: '' })}
+        onConfirm={confirmDelete}
+        title="Delete Repair Order"
+        message="Are you sure you want to permanently delete this repair order? This action cannot be undone."
+      />
     </div>
   );
 };

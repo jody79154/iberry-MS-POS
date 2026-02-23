@@ -4,6 +4,7 @@ import { Search, Plus, Filter, ShoppingCart, Package, Camera, Tag, DollarSign, E
 import { useApp } from '../context/AppContext';
 import { Category, Product } from '../types';
 import { useLocation } from 'react-router-dom';
+import ConfirmModal from '../components/ConfirmModal';
 
 const Shop: React.FC = () => {
   const { products, addToCart, saveProduct, deleteProduct } = useApp();
@@ -12,6 +13,7 @@ const Shop: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string }>({ isOpen: false, id: '' });
   const [isManageMode, setIsManageMode] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -72,9 +74,19 @@ const Shop: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDeleteItem = async (id: string) => {
-    if (confirm('Delete this product from inventory?')) {
+  const handleDeleteItem = (id: string) => {
+    setDeleteConfirm({ isOpen: true, id });
+  };
+
+  const confirmDelete = async () => {
+    const id = deleteConfirm.id;
+    console.log("UI: confirmDelete (Product) called for ID:", id);
+    try {
       await deleteProduct(id);
+      console.log("UI: deleteProduct call completed");
+    } catch (err) {
+      console.error("UI: Error calling deleteProduct:", err);
+      alert("UI Error: " + (err as any).message);
     }
   };
 
@@ -254,6 +266,14 @@ const Shop: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, id: '' })}
+        onConfirm={confirmDelete}
+        title="Delete Product"
+        message="Are you sure you want to delete this product from inventory? This action cannot be undone."
+      />
     </div>
   );
 };
