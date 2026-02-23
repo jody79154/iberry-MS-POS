@@ -137,10 +137,12 @@ const Customers: React.FC = () => {
                 <Phone className="w-4 h-4 text-zinc-400" />
                 <span>{customer.phone}</span>
               </div>
-              <div className="flex items-center gap-3 text-sm text-zinc-600 dark:text-zinc-400">
-                <Mail className="w-4 h-4 text-zinc-400" />
-                <span>{customer.email}</span>
-              </div>
+              {customer.email && (
+                <div className="flex items-center gap-3 text-sm text-zinc-600 dark:text-zinc-400">
+                  <Mail className="w-4 h-4 text-zinc-400" />
+                  <span>{customer.email}</span>
+                </div>
+              )}
               {customer.address && (
                 <div className="flex items-center gap-3 text-sm text-zinc-600 dark:text-zinc-400">
                   <MapPin className="w-4 h-4 text-zinc-400" />
@@ -201,9 +203,8 @@ const Customers: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Email Address</label>
+                <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Email Address (Optional)</label>
                 <input 
-                  required
                   type="email"
                   className="w-full px-4 py-2.5 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl outline-none"
                   value={formData.email}

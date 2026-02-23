@@ -59,10 +59,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [stockOrders, setStockOrders] = useState<StockOrder[]>([]);
   const [isCloudConnected, setIsCloudConnected] = useState(false);
   const [storeInfo, setStoreInfo] = useState<StoreInfo>({
-    name: 'IBERRY POS REPAIRS',
+    name: 'iBERRY MOBILE SOLUTIONS',
     address: '39 Orient Drive',
-    phone: '0826664296',
-    email: 'info@iberryms.co.za'
+    phone: '319025665',
+    email: 'Iberryms@gmail.com'
   });
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);

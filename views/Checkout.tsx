@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Trash2, Printer, CheckCircle, User, CreditCard, Banknote, Wrench, Package, Minus, Plus } from 'lucide-react';
+import { ShoppingCart, Trash2, Printer, CheckCircle, User, CreditCard, Banknote, Wrench, Package, Minus, Plus, Eye } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Sale } from '../types';
+import InvoiceModal from '../src/components/InvoiceModal';
+import { BUSINESS_INFO } from '../src/constants';
 
 const Checkout: React.FC = () => {
   const { cart, removeFromCart, clearCart, currentUser, customers, addSale, saveProduct, products, storeInfo } = useApp();
@@ -11,6 +13,8 @@ const Checkout: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Card'>('Card');
   const [isSuccess, setIsSuccess] = useState(false);
   const [cartQuantities, setCartQuantities] = useState<Record<string, number>>({});
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<any>(null);
 
   const getQuantity = (cartId: string) => cartQuantities[cartId] || 1;
 
@@ -28,21 +32,26 @@ const Checkout: React.FC = () => {
   const generatePDF = (saleData: any) => {
     const doc = new jsPDF();
     
-    // Header - Styled like a logo
-    doc.setFillColor(239, 68, 68); // Red
-    doc.roundedRect(10, 10, 20, 20, 3, 3, 'F');
-    doc.setFontSize(14);
-    doc.setTextColor(255, 255, 255);
-    doc.text('i', 20, 23, { align: 'center' });
+    // Header - Logo
+    try {
+      doc.addImage(BUSINESS_INFO.logo, 'PNG', 10, 10, 40, 15);
+    } catch (e) {
+      // Fallback if image fails
+      doc.setFillColor(239, 68, 68);
+      doc.roundedRect(10, 10, 20, 20, 3, 3, 'F');
+      doc.setFontSize(14);
+      doc.setTextColor(255, 255, 255);
+      doc.text('i', 20, 23, { align: 'center' });
+    }
 
     doc.setFontSize(22);
     doc.setTextColor(239, 68, 68); // Brand Red
-    doc.text('iBerry Mobile Solutions', 35, 20);
+    doc.text('iBerry Mobile Solutions', 55, 20);
     
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text(storeInfo.address, 35, 27);
-    doc.text(`Phone: ${storeInfo.phone} | Email: ${storeInfo.email}`, 35, 32);
+    doc.text(storeInfo.address, 55, 27);
+    doc.text(`Phone: ${storeInfo.phone} | Email: ${storeInfo.email}`, 55, 32);
     
     doc.setDrawColor(229, 231, 235);
     doc.line(10, 40, 200, 40);
@@ -87,6 +96,29 @@ const Checkout: React.FC = () => {
     doc.text('Terms: Standard 3-month warranty applies to all repair labor and parts replaced.', 105, finalY + 26, { align: 'center' });
 
     doc.save(`Invoice_${saleData.id}.pdf`);
+  };
+
+  const handlePreview = () => {
+    if (cart.length === 0) return;
+    const total = calculateTotal();
+    const customer = customers.find(c => c.id === selectedCustomer);
+    
+    const data = {
+      invoiceNumber: 'PREVIEW-' + Math.random().toString(36).substr(2, 4).toUpperCase(),
+      date: new Date().toLocaleDateString(),
+      dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+      customer: customer || { name: 'Walk-in Customer' },
+      items: cart.map(item => ({
+        name: item.name,
+        description: item.type.toUpperCase(),
+        quantity: getQuantity(item.cartId),
+        unitPrice: item.price
+      })),
+      status: 'PENDING' as const
+    };
+    
+    setPreviewData(data);
+    setIsPreviewOpen(true);
   };
 
   const handleCheckout = async () => {
@@ -220,13 +252,36 @@ const Checkout: React.FC = () => {
               </div>
             </div>
 
-            <button disabled={cart.length === 0} onClick={handleCheckout} className="w-full py-4 bg-red-600 text-white font-bold rounded-2xl shadow-xl hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-30 flex items-center justify-center gap-2 text-lg">
-              <Printer className="w-6 h-6" />
-              Process & Print
-            </button>
+            <div className="grid grid-cols-1 gap-3">
+              <button 
+                disabled={cart.length === 0} 
+                onClick={handlePreview} 
+                className="w-full py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-bold rounded-2xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all disabled:opacity-30 flex items-center justify-center gap-2"
+              >
+                <Eye className="w-5 h-5" />
+                Preview Invoice
+              </button>
+              
+              <button 
+                disabled={cart.length === 0} 
+                onClick={handleCheckout} 
+                className="w-full py-4 bg-red-600 text-white font-bold rounded-2xl shadow-xl hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-30 flex items-center justify-center gap-2 text-lg"
+              >
+                <Printer className="w-6 h-6" />
+                Process & Print
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {isPreviewOpen && previewData && (
+        <InvoiceModal 
+          isOpen={isPreviewOpen} 
+          onClose={() => setIsPreviewOpen(false)} 
+          data={previewData} 
+        />
+      )}
     </div>
   );
 };

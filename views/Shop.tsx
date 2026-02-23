@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Filter, ShoppingCart, Package, Camera, Tag, DollarSign, Edit, Trash2 } from 'lucide-react';
+import { Search, Plus, Filter, ShoppingCart, Package, Camera, Tag, DollarSign, Edit, Trash2, Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Category, Product } from '../types';
 import { useLocation } from 'react-router-dom';
@@ -15,6 +15,8 @@ const Shop: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string }>({ isOpen: false, id: '' });
   const [isManageMode, setIsManageMode] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -88,6 +90,23 @@ const Shop: React.FC = () => {
       console.error("UI: Error calling deleteProduct:", err);
       alert("UI Error: " + (err as any).message);
     }
+  };
+
+  const handleCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIsCapturing(true);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, image: reader.result as string }));
+        setIsCapturing(false);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerCamera = () => {
+    fileInputRef.current?.click();
   };
 
   return (
@@ -250,11 +269,48 @@ const Shop: React.FC = () => {
                 </select>
               </div>
               <div className="col-span-2">
-                <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Image URL (Optional)</label>
-                <div className="relative">
-                  <Camera className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                  <input type="text" placeholder="https://..." className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl outline-none" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} />
+                <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Product Image</label>
+                <div className="flex gap-3">
+                  <div className="flex-1 relative">
+                    <Camera className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                    <input 
+                      type="text" 
+                      placeholder="Image URL or capture photo..." 
+                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl outline-none" 
+                      value={formData.image} 
+                      onChange={e => setFormData({...formData, image: e.target.value})} 
+                    />
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={triggerCamera}
+                    disabled={isCapturing}
+                    className="px-4 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center gap-2"
+                  >
+                    {isCapturing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                    <span className="text-xs font-bold">Capture</span>
+                  </button>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    accept="image/*" 
+                    capture="environment" 
+                    onChange={handleCapture} 
+                  />
                 </div>
+                {formData.image && (
+                  <div className="mt-2 relative w-20 h-20 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
+                    <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                    <button 
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                      className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl-lg"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="col-span-2 pt-4 flex gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 bg-gray-100 dark:bg-zinc-800 font-bold rounded-xl">Cancel</button>
