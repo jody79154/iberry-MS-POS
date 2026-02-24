@@ -5,50 +5,36 @@ import {
   AlertTriangle, 
   CheckCircle, 
   Plus, 
-  ShoppingCart, 
   PackagePlus, 
   Users, 
-  FileText 
+  FileText,
+  Clock,
+  ClipboardList
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 
-const data = [
-  { name: 'Mon', sales: 4200 },
-  { name: 'Tue', sales: 3800 },
-  { name: 'Wed', sales: 2500 },
-  { name: 'Thu', sales: 4780 },
-  { name: 'Fri', sales: 3890 },
-  { name: 'Sat', sales: 5390 },
-  { name: 'Sun', sales: 6490 },
-];
-
 const Dashboard: React.FC = () => {
-  const { sales, repairs, products } = useApp();
+  const { sales, repairs, products, stockOrders } = useApp();
   const navigate = useNavigate();
 
   const activeRepairsCount = repairs.filter(r => r.status !== 'Completed' && r.status !== 'Cancelled').length;
-  const lowStockCount = products.filter(p => p.stock < 10).length;
-  const todayRevenue = sales.reduce((acc, curr) => {
-    const isToday = new Date(curr.date).toDateString() === new Date().toDateString();
-    return isToday ? acc + curr.total : acc;
-  }, 0);
+  const pendingStockOrders = stockOrders.filter(o => o.status !== 'Received').length;
   const completedToday = repairs.filter(r => 
     r.status === 'Completed' && new Date(r.dateAdded).toDateString() === new Date().toDateString()
   ).length;
 
   const stats = [
-    { label: "Today's Revenue", value: `R${todayRevenue.toFixed(2)}`, icon: TrendingUp, color: 'text-red-500', bg: 'bg-red-500/10' },
     { label: "Active Repairs", value: activeRepairsCount, icon: Wrench, color: 'text-red-500', bg: 'bg-red-500/10' },
-    { label: "Low Stock Items", value: lowStockCount, icon: AlertTriangle, color: 'text-orange-500', bg: 'bg-orange-500/10' },
+    { label: "Pending Stock", value: pendingStockOrders, icon: ClipboardList, color: 'text-blue-500', bg: 'bg-blue-500/10' },
     { label: "Completed Today", value: completedToday, icon: CheckCircle, color: 'text-purple-500', bg: 'bg-purple-500/10' },
   ];
 
   const quickActions = [
-    { label: 'New Sale', icon: ShoppingCart, onClick: () => navigate('/shop'), color: 'bg-red-600' },
-    { label: 'New Repair', icon: Wrench, onClick: () => navigate('/repairs', { state: { openModal: true } }), color: 'bg-zinc-800' },
-    { label: 'Add New Stock', icon: PackagePlus, onClick: () => navigate('/shop', { state: { openAddStock: true } }), color: 'bg-red-500' },
+    { label: 'New Repair', icon: Wrench, onClick: () => navigate('/repairs', { state: { openModal: true } }), color: 'bg-red-600' },
+    { label: 'Stock Request', icon: ClipboardList, onClick: () => navigate('/stock-orders'), color: 'bg-zinc-800' },
     { label: 'Add Customer', icon: Users, onClick: () => navigate('/customers', { state: { openModal: true } }), color: 'bg-zinc-900' },
+    { label: 'Analytics', icon: TrendingUp, onClick: () => navigate('/analytics'), color: 'bg-red-500' },
   ];
 
   return (
@@ -56,7 +42,7 @@ const Dashboard: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black tracking-tight">Dashboard</h1>
-          <p className="text-zinc-500 mt-1 text-sm font-medium">iBerry Mobile Solutions Operational Suite.</p>
+          <p className="text-zinc-500 mt-1 text-sm font-medium">iBerry Solutions Operational Suite.</p>
         </div>
         <button 
           onClick={() => navigate('/repairs')}
@@ -101,46 +87,52 @@ const Dashboard: React.FC = () => {
 
           <div className="bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-gray-100 dark:border-zinc-800 shadow-sm">
             <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>
-              Live Activity
+              <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
+              Pending Stock Orders
             </h4>
             <div className="space-y-5">
-              {sales.slice(-5).reverse().map((sale, i) => (
-                <div key={i} className="flex items-center justify-between group cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800/50 p-2 -m-2 rounded-xl transition-colors">
+              {stockOrders.filter(o => o.status !== 'Received').slice(-5).reverse().map((order, i) => (
+                <div key={i} className="flex items-center justify-between group cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800/50 p-2 -m-2 rounded-xl transition-colors" onClick={() => navigate('/stock-orders')}>
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-zinc-500 group-hover:bg-red-500 group-hover:text-white transition-colors">
-                      <FileText className="w-4 h-4" />
+                    <div className="w-9 h-9 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-zinc-500 group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                      <ClipboardList className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold truncate max-w-[120px]">{sale.customerName}</p>
-                      <p className="text-[10px] text-zinc-400 font-bold uppercase">{new Date(sale.date).toLocaleDateString()}</p>
+                      <p className="text-sm font-bold truncate max-w-[150px]">{order.itemDescription}</p>
+                      <p className="text-[10px] text-zinc-400 font-bold uppercase">{order.status} • {order.requestedBy}</p>
                     </div>
                   </div>
-                  <span className="font-black text-sm text-red-600">R{sale.total.toFixed(0)}</span>
+                  <Clock className="w-4 h-4 text-zinc-300" />
                 </div>
               ))}
+              {stockOrders.filter(o => o.status !== 'Received').length === 0 && (
+                <p className="text-center py-4 text-zinc-400 text-sm italic">No pending stock orders.</p>
+              )}
             </div>
           </div>
         </div>
 
         <div className="space-y-6">
           <div className="bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-gray-100 dark:border-zinc-800 shadow-sm">
-            <h3 className="text-lg font-black tracking-tight mb-6">Recent Repairs</h3>
+            <h3 className="text-lg font-black tracking-tight mb-6">What's Pending</h3>
             <div className="space-y-4">
-              {repairs.slice(-5).reverse().map((repair, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-2xl">
+              {repairs.filter(r => r.status !== 'Completed' && r.status !== 'Cancelled').slice(-8).reverse().map((repair, i) => (
+                <div key={i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-2xl cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors" onClick={() => navigate('/repairs')}>
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500">
                       <Wrench className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold truncate max-w-[100px]">{repair.model}</p>
+                      <p className="text-xs font-bold truncate max-w-[120px]">{repair.model}</p>
                       <p className="text-[9px] text-zinc-400 font-bold uppercase">{repair.status}</p>
                     </div>
                   </div>
                   <span className="text-[10px] font-black text-red-600">R{repair.price.toFixed(0)}</span>
                 </div>
               ))}
+              {repairs.filter(r => r.status !== 'Completed' && r.status !== 'Cancelled').length === 0 && (
+                <p className="text-center py-4 text-zinc-400 text-sm italic">No pending repairs.</p>
+              )}
             </div>
           </div>
         </div>

@@ -284,7 +284,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, data, titl
             {/* FOOTER BAR */}
             <div className="footer-bar">
               <p>Thank you for your business!</p>
-              <span className="tagline">iBerry Mobile Solutions &mdash; Your Mobile Experts</span>
+              <span className="tagline">iBerry Solutions &mdash; Your Mobile Experts</span>
               <p>{BUSINESS_INFO.website}</p>
             </div>
           </div>

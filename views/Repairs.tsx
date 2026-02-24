@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Wrench, Calendar, User as UserIcon, ShoppingCart, Edit, Trash2, Sparkles, Loader2, FileText, UserPlus, Eye } from 'lucide-react';
+import { Search, Plus, Wrench, Calendar, User as UserIcon, Edit, Trash2, Sparkles, Loader2, FileText, UserPlus, Eye } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Repair, RepairStatus, Customer } from '../types';
 import { useLocation } from 'react-router-dom';
@@ -9,7 +9,7 @@ import { generateQuotationPDF } from '../services/QuotationService';
 import InvoiceModal from '../src/components/InvoiceModal';
 
 const Repairs: React.FC = () => {
-  const { repairs, saveRepair, deleteRepair, customers, saveCustomer, addToCart, getSmartDiagnosis, storeInfo } = useApp();
+  const { repairs, saveRepair, deleteRepair, customers, saveCustomer, getSmartDiagnosis, storeInfo } = useApp();
   const location = useLocation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQuickCustomerModalOpen, setIsQuickCustomerModalOpen] = useState(false);
@@ -272,7 +272,6 @@ const Repairs: React.FC = () => {
                       <button onClick={() => handlePreviewQuotation(repair)} className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl text-zinc-500 transition-colors" title="Preview Quotation"><Eye className="w-4 h-4" /></button>
                       <button onClick={() => handlePrintQuotation(repair)} className="p-2.5 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-xl text-blue-600 transition-colors" title="Print Quotation"><FileText className="w-4 h-4" /></button>
                       <button onClick={() => openEditModal(repair)} className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl text-zinc-500 transition-colors" title="Edit Order"><Edit className="w-4 h-4" /></button>
-                      <button onClick={() => addToCart({ ...repair, type: 'repair', name: `${repair.model} - ${repair.fault}` })} className="p-2.5 hover:bg-blue-600 hover:text-white rounded-xl text-blue-500 transition-colors shadow-blue-500/20" title="Add to Checkout"><ShoppingCart className="w-4 h-4" /></button>
                       <button onClick={() => handleDelete(repair.id)} className="p-2.5 hover:bg-red-500 hover:text-white rounded-xl text-red-500 transition-colors" title="Delete Order"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </td>

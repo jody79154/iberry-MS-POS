@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { DollarSign, FileSpreadsheet, TrendingUp, ShoppingBag, Printer } from 'lucide-react';
+import { DollarSign, FileSpreadsheet, TrendingUp, ShoppingBag, Printer, Trash2, AlertTriangle } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import ConfirmModal from '../components/ConfirmModal';
 
 const Analytics: React.FC = () => {
-  const { sales, storeInfo, currentUser } = useApp();
+  const { sales, storeInfo, currentUser, clearSalesHistory } = useApp();
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
   const totalSalesCount = sales.length;
   const totalRevenue = sales.reduce((acc, s) => acc + s.total, 0);
@@ -87,9 +89,20 @@ const Analytics: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Analytics & Financials</h1>
-        <p className="text-zinc-500">Track your repair workshop performance and sales history.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Analytics & Financials</h1>
+          <p className="text-zinc-500">Track your repair workshop performance and sales history.</p>
+        </div>
+        {sales.length > 0 && (
+          <button 
+            onClick={() => setIsClearModalOpen(true)}
+            className="flex items-center justify-center gap-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-5 py-2.5 rounded-xl font-bold text-sm border border-red-100 dark:border-red-900/30 hover:bg-red-600 hover:text-white transition-all active:scale-95"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Clear Sales History</span>
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -173,6 +186,17 @@ const Analytics: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      <ConfirmModal
+        isOpen={isClearModalOpen}
+        onClose={() => setIsClearModalOpen(false)}
+        onConfirm={async () => {
+          await clearSalesHistory();
+          setIsClearModalOpen(false);
+        }}
+        title="Clear Sales History"
+        message="Are you sure you want to delete ALL sales records? This action is permanent and cannot be undone."
+      />
     </div>
   );
 };

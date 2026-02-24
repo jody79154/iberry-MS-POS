@@ -1,6 +1,6 @@
 
 export const BUSINESS_INFO = {
-  name: "iBerry Mobile Solutions",
+  name: "iBerry Solutions",
   addressLine1: "123 Tech Avenue",
   addressLine2: "Cape Town, Western Cape, 8001",
   phone: "+27 21 555 0123",

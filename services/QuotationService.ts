@@ -21,7 +21,7 @@ export const generateQuotationPDF = (repair: Repair, customer: Customer, storeIn
 
   doc.setFontSize(24);
   doc.setTextColor(brandRed[0], brandRed[1], brandRed[2]);
-  doc.text('iBERRY MOBILE SOLUTIONS', 55, 22);
+  doc.text('iBERRY SOLUTIONS', 55, 22);
   
   doc.setFontSize(10);
   doc.setTextColor(100);
@@ -97,7 +97,7 @@ export const generateQuotationPDF = (repair: Repair, customer: Customer, storeIn
     "* Warrantee/guarantee is void if unit is worked on or opened by anyone except iBERRY.",
     "* iBERRY is not responsible for keeping of memory cards, batteries, back covers and sim cards; it is the owner's responsibility.",
     "* All devices not collected within 31 days of notification may be sold to cover costs.",
-    "* iBERRY is strictly an out of warranty repair centre. If any repairs done to handsets are under warranty by the supplier, and warranty is voided due to us working on it, no claims against iBERRY Mobile Solutions will be entertained."
+    "* iBERRY is strictly an out of warranty repair centre. If any repairs done to handsets are under warranty by the supplier, and warranty is voided due to us working on it, no claims against iBERRY Solutions will be entertained."
   ];
   
   let currentY = 210;

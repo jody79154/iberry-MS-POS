@@ -46,7 +46,7 @@ const Login: React.FC = () => {
           <div className="w-20 h-20 bg-red-600 rounded-3xl mx-auto flex items-center justify-center text-white mb-6 shadow-2xl shadow-red-500/30">
             <Apple className="w-12 h-12 fill-white" />
           </div>
-          <h1 className="text-4xl font-black tracking-tight mb-2 text-red-600">iBerry MS</h1>
+          <h1 className="text-4xl font-black tracking-tight mb-2 text-red-600">iBerry Solutions</h1>
           <p className="text-zinc-500">Mobile Solutions - Management Suite</p>
         </div>
 

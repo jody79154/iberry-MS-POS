@@ -2,11 +2,9 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
-  ShoppingBag, 
   Wrench, 
   Users, 
   Package, 
-  ShoppingCart, 
   BarChart3, 
   ClipboardList, 
   Settings, 
@@ -20,6 +18,8 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  Maximize,
+  Minimize,
   Menu
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -29,6 +29,29 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const [isSyncing, setIsSyncing] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(() => localStorage.getItem('sidebarCollapsed') === 'true');
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+      });
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   const toggleSidebar = () => {
     setIsCollapsed(prev => {
@@ -51,10 +74,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { icon: ShoppingBag, label: 'Shop', path: '/shop' },
     { icon: Wrench, label: 'Repairs', path: '/repairs' },
     { icon: Users, label: 'Customers', path: '/customers' },
-    { icon: ShoppingCart, label: 'Checkout', path: '/checkout', count: cart.length },
     { icon: BarChart3, label: 'Analytics', path: '/analytics' },
     { icon: ClipboardList, label: 'Stock Orders', path: '/stock-orders' },
     { icon: Settings, label: 'Settings', path: '/settings' },
@@ -76,7 +97,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
           {!isCollapsed && (
             <span className="text-xl font-black tracking-tighter text-red-500 truncate animate-in fade-in slide-in-from-left-2 duration-300">
-              iBerry MS
+              iBerry Solutions
             </span>
           )}
         </div>
@@ -101,11 +122,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   {item.label}
                 </span>
               )}
-              {item.count ? (
-                <span className={`${isCollapsed ? 'absolute top-2 right-2' : ''} bg-white text-red-600 text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center shadow-lg`}>
-                  {item.count}
-                </span>
-              ) : null}
             </NavLink>
           ))}
         </nav>
@@ -157,6 +173,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             )}
           </div>
           <div className="flex items-center gap-3">
+            <button 
+              onClick={toggleFullscreen}
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors border border-gray-200 dark:border-zinc-700"
+              title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+            >
+              {isFullscreen ? <Minimize className="w-5 h-5 text-zinc-500" /> : <Maximize className="w-5 h-5 text-zinc-500" />}
+            </button>
             <button 
               onClick={handleSync}
               disabled={isSyncing}

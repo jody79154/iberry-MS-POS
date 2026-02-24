@@ -34,6 +34,7 @@ interface AppContextType {
   saveRepair: (repair: Repair) => Promise<void>;
   deleteRepair: (id: string) => Promise<void>;
   addSale: (sale: Sale) => Promise<void>;
+  clearSalesHistory: () => Promise<void>;
   saveStockOrder: (order: StockOrder) => Promise<void>;
   deleteStockOrder: (id: string) => Promise<void>;
   updateStoreInfo: (info: StoreInfo) => Promise<void>;
@@ -59,7 +60,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [stockOrders, setStockOrders] = useState<StockOrder[]>([]);
   const [isCloudConnected, setIsCloudConnected] = useState(false);
   const [storeInfo, setStoreInfo] = useState<StoreInfo>({
-    name: 'iBERRY MOBILE SOLUTIONS',
+    name: 'iBERRY SOLUTIONS',
     address: '39 Orient Drive',
     phone: '319025665',
     email: 'Iberryms@gmail.com'
@@ -320,6 +321,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       alert("Failed to record sale: " + (err as any).message);
     }
   };
+
+  const clearSalesHistory = async () => {
+    try {
+      const { error } = await supabase.from('sales').delete().neq('id', '0'); // Delete all
+      if (error) throw error;
+      setSales([]);
+    } catch (err) {
+      console.error("Clear sales history error:", err);
+      alert("Failed to clear sales history: " + (err as any).message);
+    }
+  };
+
   const saveStockOrder = async (order: StockOrder) => { 
     try {
       const { error } = await supabase.from('stock_orders').upsert(order);
@@ -378,7 +391,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       cart, addToCart, removeFromCart, clearCart,
       theme, toggleTheme, isCloudConnected, supabaseConfigured,
       saveProduct, deleteProduct, saveCustomer, deleteCustomer,
-      saveRepair, deleteRepair, addSale, saveStockOrder, deleteStockOrder,
+      saveRepair, deleteRepair, addSale, clearSalesHistory, saveStockOrder, deleteStockOrder,
       updateStoreInfo, seedDatabase, getSmartDiagnosis, logout, fetchData
     }}>
       {children}

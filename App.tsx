@@ -4,10 +4,8 @@ import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AppProvider, useApp } from './context/AppContext';
 import Layout from './components/Layout';
 import Dashboard from './views/Dashboard';
-import Shop from './views/Shop';
 import Repairs from './views/Repairs';
 import Customers from './views/Customers';
-import Checkout from './views/Checkout';
 import Analytics from './views/Analytics';
 import StockOrders from './views/StockOrders';
 import Settings from './views/Settings';
@@ -29,10 +27,8 @@ const AppRoutes: React.FC = () => {
     <Layout>
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/shop" element={<Shop />} />
         <Route path="/repairs" element={<Repairs />} />
         <Route path="/customers" element={<Customers />} />
-        <Route path="/checkout" element={<Checkout />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/stock-orders" element={<StockOrders />} />
         <Route path="/settings" element={<Settings />} />
